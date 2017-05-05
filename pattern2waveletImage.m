@@ -32,12 +32,19 @@ if(patternSize(1) ~= tamAux(1) || patternSize(2) ~= tamAux(2))
     difY = patternSize(2) - tamAux(2);
     x=x + floor(difX/2);
     y=y + floor(difY/2);
-    pattern = pattern(x,y,:);
+    pattern2 = pattern(x,y,:);
 end
 
-% Añadimos el patron como si fuera una imagen
+% Añadimos el patron como si fuera una imagen5
+%levels{lvl,4} = imadd(uint8(wcodemat(levels{i,4},255,'mat',1)), uint8(wcodemat(pattern2,255,'mat',1)));
+levels{lvl,3} = levels{lvl,3} + pattern2;
+levels{lvl,2} = levels{lvl,2} + pattern2;
+levels{lvl,4} = levels{lvl,4} + pattern2;
+lastCA = levels{lvl,1} + pattern2;
+
 %levels{lvl,2} = imadd(uint8(wcodemat(levels{i,2},255,'mat',1)),uint8(pattern));
-levels{lvl,4} = imadd(uint8(wcodemat(levels{i,4},255,'mat',1)),uint8(pattern));
+%levels{lvl,3} = imadd(uint8(wcodemat(levels{i,3},255,'mat',1)),uint8(pattern));
+%lastCA = imadd(uint8(wcodemat(lastCA,255,'mat',1)),uint8(pattern));
 % Transformada inversa
 for i = lvl:-1:1
     lastCA = imageWaveletAntiTransform( lastCA,levels{i,2},levels{i,3},levels{i,4},sizes(i,1),sizes(i,2) );
