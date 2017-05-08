@@ -32,7 +32,10 @@ if(patternSize(1) ~= tamAux(1) || patternSize(2) ~= tamAux(2))
     difY = patternSize(2) - tamAux(2);
     x=x + floor(difX/2);
     y=y + floor(difY/2);
-    pattern2 = pattern(x,y,:);
+    pattern2 = zeros(tamAux(1) , tamAux(2),3);
+    pattern2(:,:,1) = resizem(pattern(:,:,1),[tamAux(1) , tamAux(2)]);
+    pattern2(:,:,2) = resizem(pattern(:,:,2),[tamAux(1) , tamAux(2)]);
+    pattern2(:,:,3) = resizem(pattern(:,:,3),[tamAux(1) , tamAux(2)]);
 end
 
 % Añadimos el patron como si fuera una imagen5

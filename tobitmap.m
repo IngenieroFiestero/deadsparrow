@@ -1,4 +1,4 @@
-gfunction matrix = tobitmap(x, y, x_size, y_size, matrix)
+function matrix = tobitmap(x, y, x_size, y_size, matrix)
 % inputs
 % x = coordinates x of the function to represent (max 1 min -1)
 % y = coordinates y of the function to represent (max 1 min -1)
