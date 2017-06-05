@@ -22,3 +22,49 @@ end
 close(vw);
 close(vwo);
 
+%% Wavelet Video
+
+%Pattern
+tam = size(A);
+redund = 12;
+black = zeros(redund);
+white = ones(redund);
+
+videoName = 'motion.mp4';
+outputVideoName = 'motionsecure';
+vr = VideoReader(videoName);
+vw = VideoWriter(outputVideoName);
+open(vw);
+i=1;
+while hasFrame(vr)
+    if mod(i,2)==1
+        tile = [black white; white black];
+        p = ceil(tam(1)/(redund*2));
+        q = ceil(tam(2)/(redund*2));
+        I = repmat(tile,p,q);
+        I = I(1:tam(1),1:tam(2))*32;
+        ad = zeros([size(I) 3]);
+        ad(:,:,1)=I;
+        ad(:,:,2)=I;
+        ad(:,:,3)=I;
+    else
+        tile = [white black; black white];
+        p = ceil(tam(1)/(redund*2));
+        q = ceil(tam(2)/(redund*2));
+        I = repmat(tile,p,q);
+        I = I(1:tam(1),1:tam(2))*32;
+        ad = zeros([size(I) 3]);
+        ad(:,:,1)=I;
+        ad(:,:,2)=I;
+        ad(:,:,3)=I;
+    end
+    video = readFrame(vr);
+    %mediaLuminosidad(video)
+    videoPattern = pattern2waveletImage(ad,video,5);
+    writeVideo(vw,videoPattern);
+end
+close(vw);
+
+
+%videoAndPattern2Wavelet( 'motion.mp4',ad, 'motionsecure' );
+
