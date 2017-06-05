@@ -1,5 +1,7 @@
 imgOrigin = imread('Lenna.png');
 
+blur=[1,1,1;1,1,1;1,1,1];
+
 ss_space = 16;%256/8=64 8 niveles distintos
 ss_colors = zeros(1,16,3);
 ss_colors(1,1,:)=[0,255,255];%cyan
@@ -36,7 +38,7 @@ end
 rand_img = my_repelem(rand_img,redund);
 figure;
 imshow(rand_img);
-
+%% Hasta aqui lo conjunto
 
 pattern = zeros(size(rand_sequence));
 pattern(4,4) = 8;
@@ -61,21 +63,26 @@ pattern_ss = my_repelem(ss_pre,redund);
 figure;
 imshow(pattern_ss);
 
+%% Aqui ya tenemos el patron ss junto con la info
+
 % Prueba de AntiTransfor del SS
 tamSS = size(pattern_ss);
 noSS = zeros(tamSS);
 zeros_SS = pattern2waveletImage( double(pattern_ss),noSS,3 );
 figure;
 imshow(zeros_SS);
-
+%% Esta es la inversa del patron junto con la imagen (reduciendo la amplitud de color en 5 bits)
+imageAndPattern2 = imadd(imgOrigin,imfilter(zeros_SS,blur)/16);
+figure;
+imshow(imfilter(zeros_SS,blur));
 
 %Asi deberia quedar el patron
 %imshow(imageXOR(pattern_ss,-double(ss_sequence)))
 imageAndPattern = imgOrigin;
-for i=3:3
+for i=5:5
     imageAndPattern = pattern2waveletImage( double(bitshift(pattern_ss,-8+i)),imageAndPattern,i );
 end
-figure;
+figure
 imshow(imageAndPattern);
 
 blur = [1 1 1;1 1 1; 1 1 1];
@@ -91,133 +98,20 @@ image_patt = imfilter(image_patt,blur);
 [cA_2,cH_2,cV_2,cD_2] = imageWaveletTransform( cA_2 );
 figure;
 show_wavelet(cA_2,cH_2,cV_2,cD_2,3);
-figure;
+
 %Esta ultima imagen debe ser adaptada para poder aplicarle el XOR con el
 %Spread Spectrum
 
 
-%% Tile generator
-
-%% Wavelets https://es.mathworks.com/help/wavelet/ref/wavedec2.html
-
-% [cA_1,cH_1,cV_1,cD_1] = imageWaveletTransform( A );
-% % Imprimir por pantalla
-% show_wavelet(cA_1,cH_1,cV_1,cD_1);
-% 
-% [cA_1,cH_1,cV_1,cD_1] = imageWaveletTransform( cA_1 );
-% % Imprimir por pantalla
-% show_wavelet(cA_1,cH_1,cV_1,cD_1,2);
-% [cA_1,cH_1,cV_1,cD_1] = imageWaveletTransform( cA_1 );
-% % Imprimir por pantalla
-% show_wavelet(cA_1,cH_1,cV_1,cD_1,3);
-
-
-redund = 32;
-black = zeros(redund);
-white = ones(redund);
-tile = [white black; black white];
-p = ceil(tam(1)/(redund*2));
-q = ceil(tam(2)/(redund*2));
-I = repmat(tile,p,q);
-I = I(1:tam(1),1:tam(2))*32;
-ad = zeros([size(I) 3]);
-ad(:,:,1)=I;
-ad(:,:,2)=I;
-ad(:,:,3)=I;
-%ad = pn_generator(tam,8);
-[ ad,cH_i,cV_i,cD_i ] = imageWaveletTransform( ad );
-imshow(uint8(wcodemat(ad,255,'mat',1)));
-
-
-[x, y] = rose_simple(1/270, 1, 5, 1, 0, false, 0, 1, false);
-I = tobitmap(x, y, floor(tam(1)/(7)) + 1,floor(tam(2)/(7)) + 1) * 80;
-ad = zeros([size(I) 3]);
-%ad(:,:,1)=I;
-%ad(:,:,2)=I;
-ad(:,:,3)=I;
-imageAndPattern = pattern2waveletImage( ad,A,3 );
-imshow(imageAndPattern)
-[cA_1,cH_1,cV_1,cD_1] = imageWaveletTransform( imageAndPattern );
-% Imprimir por pantalla
-show_wavelet(cA_1,cH_1,cV_1,cD_1);
-
-[cA_1,cH_1,cV_1,cD_1] = imageWaveletTransform( cA_1 );
-% Imprimir por pantalla
- show_wavelet(cA_1,cH_1,cV_1,cD_1,2);
-[cA_1,cH_1,cV_1,cD_1] = imageWaveletTransform( cA_1 );
-% Imprimir por pantalla
-show_wavelet(cA_1,cH_1,cV_1,cD_1,3);
-
-
-% --------------------------- LVL 2 -----------------------
-[c2,s2]=wavedec2(A1img,2,'haar');
-[H2,V2,D2] = detcoef2('all',c,s,1);
-A2 = appcoef2(c,s,'haar',1);
-V2img = wcodemat(V2,255,'mat',1);%Reescala la imagen hasta los 255
-H2img = wcodemat(H2,255,'mat',1);
-D2img = wcodemat(D2,255,'mat',1);
-A2img = wcodemat(A2,255,'mat',1);
-
+%% La imagen se ha guardado como jpg y ahora trabajamos con ella
+imwrite(imageAndPattern,'lennaPattern.jpg','jpg')
+imgPattern = imread('lennaPattern.jpg');
+tamPatt = size(imgPattern);
+%imgPattern= imresize(imgPattern,[tamImgOrigin(1),tamImgOrigin(2)]);
+image_patt = imageXOR(-double(imgPattern),double(imgOrigin));
 figure;
-subplot(2,2,1);
-imagesc(A2img);
-colormap pink(255);
-title('Approximation Coef. of Level 2');
-
-subplot(2,2,2)
-imagesc(H2img);
-title('Horizontal detail Coef. of Level 2');
-
-subplot(2,2,3)
-imagesc(V2img);
-title('Vertical detail Coef. of Level 2');
-
-subplot(2,2,4)
-imagesc(D2img);
-title('Diagonal detail Coef. of Level 2');
-
-%% Kernels ETC
-tam = size(A);
-
-% Kernel -------------------
-kernel =  zeros(5,5);
-%mat = [-2,-1,0;-1,1,1;0,1,2];%Repujado
-%mat = [0,-1,0;-1,5,-1;0,-1,0];%Enfocar
-mat = [0,1,0;1,-4,1;0,1,0];%Detectar Borde
-%mat = ones(3,3);% Desenfoque
-%mat = [2,0,1;1,1,-4;3,7,-3];% Eliminar casi todo menos movimiento
-
-kernel(2:4,2:4) = mat;
-inv_kernel = zeros(5,5);
-inv_kernel(2:4,2:4) = inv(mat);
-
-tam = size(A);
-redund = 12;
-black = zeros(redund);
-white = ones(redund);
-tile = [white black; black white];
-p = ceil(tam(1)/(redund*2));
-q = ceil(tam(2)/(redund*2));
-I = repmat(tile,p,q);
-I = I(1:tam(1),1:tam(2));
-rnd = randi(10,tam(1),tam(2));
-add = imadd(I*10,rnd);%First convert to -1/1 then -8/8
-W = [];
-W(:,:,1) = add;
-W(:,:,2) = add;
-W(:,:,3) = add;
-W=uint8(W);
-imshow(W)
-E=imadd(A,W);
-imshow(E)
-rnd2 = [];
-rnd2(:,:,1) = rnd;
-rnd2(:,:,2) = rnd;
-rnd2(:,:,3) = rnd;
-rnd2 = uint8(rnd2);
-F = imsubtract(E,rnd2);
-imshow(F)
-%Solo si el kernel tiene inversa
-D=imfilter(E,inv_kernel);
-
-imshow(D)
+imshow(image_patt);
+[cA_2,cH_2,cV_2,cD_2] = imageWaveletTransform( imgPattern );
+[cA_2,cH_2,cV_2,cD_2] = imageWaveletTransform( cA_2 );
+[cA_2,cH_2,cV_2,cD_2] = imageWaveletTransform( cA_2 );
+show_wavelet(cA_2,cH_2,cV_2,cD_2,3);
